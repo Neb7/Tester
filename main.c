@@ -74,7 +74,6 @@ int	main(int ac, char **av)
 					printf("(Null)");
 			}
 		}
-		printf("\n---------------------\n");
 		close(fd);
 		close(fd2);
 	}
