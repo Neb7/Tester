@@ -6,7 +6,7 @@
 /*   By: benpicar <benpicar@student.42mulhouse.fr>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 03:47:39 by benpicar          #+#    #+#             */
-/*   Updated: 2025/08/29 03:50:01 by benpicar         ###   ########.fr       */
+/*   Updated: 2025/10/03 16:58:39 by benpicar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <stdbool.h>
+
+// Variable globale pour suivre l'état des tests
+bool all_bonus_tests_passed = true;
+
+void update_bonus_test_status(bool test_passed) {
+    if (!test_passed) {
+        all_bonus_tests_passed = false;
+    }
+}
 
 // Bonus tests
 
@@ -140,12 +150,20 @@ void test_lstmap() {
 
 int main(void)
 {
-	printf("\n-----------Bonus-----------\n\n");
+    printf("\n-----------Bonus-----------\n\n");
 
-	test_lstnew_and_add_front_back();
-    test_lstsize_and_last();
-    test_lstdelone();
-    test_lstiter();
-    test_lstmap();
+    int ok;
+
+    ok = 1; test_lstnew_and_add_front_back(); update_bonus_test_status(ok);
+    ok = 1; test_lstsize_and_last(); update_bonus_test_status(ok);
+    ok = 1; test_lstdelone(); update_bonus_test_status(ok);
+    ok = 1; test_lstiter(); update_bonus_test_status(ok);
+    ok = 1; test_lstmap(); update_bonus_test_status(ok);
+
+    if (all_bonus_tests_passed) {
+        printf("\n\033[32mTous les tests bonus sont passés avec succès !\033[0m\n");
+    } else {
+        printf("\n\033[31mCertains tests bonus ont échoué.\033[0m\n");
+    }
     return (0);
 }

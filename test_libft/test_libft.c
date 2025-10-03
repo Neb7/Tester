@@ -6,11 +6,12 @@
 /*   By: benpicar <benpicar@student.42mulhouse.fr>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 03:04:01 by benpicar          #+#    #+#             */
-/*   Updated: 2025/08/29 03:48:24 by benpicar         ###   ########.fr       */
+/*   Updated: 2025/10/03 16:48:42 by benpicar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdbool.h>
 
 #define GREEN "\033[32m"
 #define RED   "\033[31m"
@@ -21,6 +22,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
+
+// Variable globale pour suivre l'état des tests
+bool all_tests_passed = true;
 
 void test_isalpha() {
     printf("ft_isalpha vs isalpha:\n");
@@ -507,44 +511,90 @@ void test_strmapi() {
     free(s);
 }
 
+void update_test_status(bool test_passed) {
+    if (!test_passed) {
+        all_tests_passed = false;
+    }
+}
+
 int main() {
     test_isalpha();
+    update_test_status(all_tests_passed);
     test_isdigit();
+    update_test_status(all_tests_passed);
     test_isalnum();
+    update_test_status(all_tests_passed);
     test_isascii();
+    update_test_status(all_tests_passed);
     test_isprint();
+    update_test_status(all_tests_passed);
     test_strlen();
+    update_test_status(all_tests_passed);
     test_strlcpy();
+    update_test_status(all_tests_passed);
     test_strlcat();
+    update_test_status(all_tests_passed);
     test_strchr();
+    update_test_status(all_tests_passed);
     test_strrchr();
+    update_test_status(all_tests_passed);
     test_strncmp();
+    update_test_status(all_tests_passed);
     test_strnstr();
+    update_test_status(all_tests_passed);
     test_memset();
+    update_test_status(all_tests_passed);
     test_bzero();
+    update_test_status(all_tests_passed);
     test_memcpy();
+    update_test_status(all_tests_passed);
     test_memmove();
+    update_test_status(all_tests_passed);
     test_memchr();
+    update_test_status(all_tests_passed);
     test_memcmp();
+    update_test_status(all_tests_passed);
     test_atoi();
+    update_test_status(all_tests_passed);
     test_toupper();
+    update_test_status(all_tests_passed);
     test_tolower();
+    update_test_status(all_tests_passed);
     test_strdup();
+    update_test_status(all_tests_passed);
     test_calloc();
+    update_test_status(all_tests_passed);
 
-	printf("\n------Part 2------\n\n");
+    printf("\n------Part 2------\n\n");
 
-	test_itoa();
+    test_itoa();
+    update_test_status(all_tests_passed);
     test_putchar_fd();
+    update_test_status(all_tests_passed);
     test_putendl_fd();
+    update_test_status(all_tests_passed);
     test_putnbr_fd();
+    update_test_status(all_tests_passed);
     test_putstr_fd();
+    update_test_status(all_tests_passed);
     test_split();
+    update_test_status(all_tests_passed);
     test_strjoin();
+    update_test_status(all_tests_passed);
     test_strtrim();
+    update_test_status(all_tests_passed);
     test_substr();
+    update_test_status(all_tests_passed);
     test_striteri();
+    update_test_status(all_tests_passed);
     test_strmapi();
-	
+    update_test_status(all_tests_passed);
+
+    if (all_tests_passed) {
+        printf("\n\033[32mTous les tests sont passés avec succès !\033[0m\n");
+    } else {
+        printf("\n\033[31mCertains tests ont échoué.\033[0m\n");
+    }
+
     return (0);
 }
