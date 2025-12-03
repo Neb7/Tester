@@ -5,8 +5,8 @@
 ### 🔧 Fichiers de test
 | Fichier | Taille | Description |
 |---------|--------|-------------|
-| `test_libft.c` | 16K | Tester principal (Part 1 & 2) avec système de fork |
-| `test_libft_bonus.c` | 7.3K | Tester pour les fonctions bonus (listes) avec fork |
+| `test_libft.c` | 40K | Tester principal (Part 1 & 2) avec fork, capture sortie et tests NULL |
+| `test_libft_bonus.c` | 14K | Tester bonus (listes) avec fork, capture sortie et tests NULL |
 
 ### 📚 Documentation
 | Fichier | Taille | Description |
@@ -29,14 +29,18 @@
 
 ## 📊 Statistiques
 
-- **Total de lignes de code** : ~1200 lignes (test_libft.c + test_libft_bonus.c)
+- **Total de lignes de code** : ~1900 lignes (test_libft.c + test_libft_bonus.c)
 - **Nombre de tests** : 
-  - Part 1 & 2 : 33 tests
-  - Bonus : 5 tests
-  - **Total : 38 tests**
+  - Part 1 : 23 tests
+  - Part 2 : 29 tests (dont 13 protections NULL)
+  - Bonus : 7 tests (dont 16 protections NULL)
+  - **Total : 59 tests (+ 29 tests NULL informatifs)**
 - **Fonctionnalités** :
   - ✅ Protection contre segfault
   - ✅ Détection de timeout
+  - ✅ Capture de sortie (pipes)
+  - ✅ Tests de protection NULL
+  - ✅ Tests groupés par fonction
   - ✅ Messages d'erreur détaillés
   - ✅ Isolation par fork
   - ✅ Résumé complet
@@ -48,8 +52,8 @@
 ./run_tests.sh
 
 # Méthode 2 : Avec Make
-make test          # Tests de base
-make test_bonus    # Tests bonus
+make t          # Tests de base
+make b          # Tests bonus
 
 # Méthode 3 : Manuel
 make               # Compile

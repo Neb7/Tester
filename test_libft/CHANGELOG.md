@@ -1,5 +1,25 @@
 # Changelog - Libft Tester
 
+## Version 2.1 - 2025-12-03
+
+### 🎉 Améliorations majeures
+
+#### ✨ Nouvelles fonctionnalités
+- **Capture de sortie** : Vérification des fonctions ft_put* via pipes
+- **Tests de protection NULL** : 29 tests pour vérifier la gestion des NULL
+  - Affichage avec `[🛡]` (protégé) et `[⚠]` (non protégé)
+  - Tests informatifs uniquement, n'affectent pas le résultat global
+- **Tests groupés** : Tous les tests d'une fonction sur une seule ligne
+- **Statistiques enrichies** : Ajout du compteur de protections NULL
+
+#### 📊 Tests
+- **52 tests fonctionnels** (Part 1 & 2)
+- **7 tests bonus**
+- **29 tests NULL** (13 pour Part 2, 16 pour bonus)
+- **88 tests** au total
+
+---
+
 ## Version 2.0 - 2025-12-02
 
 ### 🎉 Nouvelle version majeure avec système de fork
@@ -33,9 +53,10 @@
 - Correction des fuites mémoires potentielles dans les tests
 
 #### 📊 Tests
-- **33 tests** pour Part 1 & 2
-- **5 tests** pour les bonus
-- **38 tests** au total
+- **23 tests** pour Part 1
+- **29 tests** pour Part 2
+- **7 tests** pour les bonus
+- **59 tests** au total
 
 ### Détails techniques
 

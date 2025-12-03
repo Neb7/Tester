@@ -67,26 +67,26 @@ make clean    # Nettoie les binaires
 test_libft/
 │
 ├── 📄 Fichiers principaux
-│   ├── test_libft.c          → Tests Part 1 & 2 (569 lignes)
-│   ├── test_libft_bonus.c    → Tests bonus (239 lignes)
+│   ├── test_libft.c          → Tests Part 1 & 2 (1400 lignes)
+│   ├── test_libft_bonus.c    → Tests bonus (489 lignes)
 │   ├── Makefile              → Compilation automatique
 │   └── run_tests.sh          → Script tout-en-un
 │
 ├── 📚 Documentation utilisateur
-│   ├── README.md             → Vue d'ensemble (73 lignes)
-│   ├── QUICKSTART.md         → Démarrage rapide (237 lignes)
+│   ├── README.md             → Vue d'ensemble
+│   ├── QUICKSTART.md         → Démarrage rapide
 │   └── INDEX.md              → Ce fichier (vous êtes ici)
 │
 ├── 📊 Documentation technique
-│   ├── IMPROVEMENTS.md       → Détails techniques (259 lignes)
-│   ├── CHANGELOG.md          → Historique (186 lignes)
-│   └── CONTENTS.md           → Inventaire (144 lignes)
+│   ├── IMPROVEMENTS.md       → Détails techniques
+│   ├── CHANGELOG.md          → Historique
+│   └── CONTENTS.md           → Inventaire
 │
 └── 📈 Statistiques
     ├── 9 fichiers au total
-    ├── 808 lignes de code C
-    ├── 756 lignes de documentation
-    └── 60K taille totale
+    ├── ~1900 lignes de code C
+    ├── ~900 lignes de documentation
+    └── 80K taille totale
 ```
 
 ## 🎯 Objectifs par fichier

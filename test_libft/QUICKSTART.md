@@ -23,8 +23,9 @@ make test_bonus  # Tests bonus (si disponibles)
 #### ✅ Tous les tests passent
 ```
 ===================
-Total: 33 tests
-Passed: 33
+Total: 52 tests
+Passed: 52
+NULL Protection: 13/13 protected
 
 ✅ Tous les tests sont passés avec succès !
 ```
@@ -36,9 +37,10 @@ ft_strlen: [KO]
   Error: s="abc" ft_strlen=5 expected=3
 
 ===================
-Total: 33 tests
-Passed: 32
+Total: 52 tests
+Passed: 51
 Failed: 1
+NULL Protection: 12/13 protected
 
 ❌ Certains tests ont échoué.
 ```
@@ -162,28 +164,39 @@ ft_calloc: [OK]
 
 --- Part 2: Additional functions ---
 ft_itoa: [OK]
-ft_substr: [OK]
-...
-ft_strmapi: [OK]
+ft_putchar_fd: [OK]
+ft_putendl_fd: [OK] [🛡]
+ft_putnbr_fd: [OK] [OK] [OK] [OK] [OK]
+ft_putstr_fd: [OK] [🛡] [🛡]
+ft_split: [OK] [🛡]
+ft_strjoin: [OK] [🛡] [🛡] [🛡]
+ft_strtrim: [OK] [🛡] [🛡]
+ft_substr: [OK] [🛡]
+ft_striteri: [OK] [🛡] [🛡]
+ft_strmapi: [OK] [🛡] [⚠]
 
 ===================
-Total: 33 tests
-Passed: 33
+Total: 52 tests
+Passed: 52
+NULL Protection: 12/13 protected
 
 ✅ Tous les tests sont passés avec succès !
 
 === LIBFT BONUS TESTER ===
 
 --- Bonus: Linked list functions ---
-ft_lstnew + ft_lstadd_front/back: [OK]
-ft_lstsize + ft_lstlast: [OK]
-ft_lstdelone: [OK]
-ft_lstiter: [OK]
-ft_lstmap: [OK]
+ft_lstnew: [OK] [🛡]
+ft_lstadd_front/back: [OK] [🛡] [🛡] [🛡] [🛡]
+ft_lstsize + ft_lstlast: [OK] [🛡] [🛡]
+ft_lstdelone: [OK] [🛡] [🛡]
+ft_lstclear: [OK] [🛡] [🛡]
+ft_lstiter: [OK] [🛡] [🛡]
+ft_lstmap: [OK] [🛡] [🛡] [🛡]
 
 ===================
-Total: 5 tests
-Passed: 5
+Total: 7 tests
+Passed: 7
+NULL Protection: 16/16 protected
 
 ✅ Tous les tests bonus sont passés avec succès !
 ```

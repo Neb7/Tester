@@ -51,8 +51,10 @@ Chaque erreur indique maintenant :
 
 | Résultat | Couleur | Signification |
 |----------|---------|---------------|
-| `[OK]` | 🟢 Vert | Test réussi |
+| `[OK]` | 🟢 Vert | Test fonctionnel réussi |
 | `[KO]` | 🔴 Rouge | Test échoué (logique incorrecte) |
+| `[🛡]` | 🟢 Vert | Protection NULL implémentée |
+| `[⚠]` | 🟡 Jaune | Protection NULL manquante |
 | `[CRASH: SEGFAULT]` | 🔴 Rouge | Segmentation fault |
 | `[CRASH: BUS ERROR]` | 🔴 Rouge | Bus error |
 | `[CRASH: ABORT]` | 🔴 Rouge | Abort (assertion, malloc fail, etc.) |
@@ -73,17 +75,19 @@ Certains tests ont échoué.
 #### Après
 ```
 ===================
-Total: 33 tests
-Passed: 31
+Total: 52 tests
+Passed: 50
 Failed: 2
+NULL Protection: 12/13 protected
 
 ❌ Certains tests ont échoué.
 ```
 
 Le résumé indique maintenant :
-- **Nombre total de tests**
+- **Nombre total de tests fonctionnels**
 - **Nombre de tests réussis** (en vert)
 - **Nombre de tests échoués** (en rouge si > 0)
+- **Statistiques de protection NULL** (informatif, en gris)
 - **Message clair** avec emoji
 
 ### 5. Structure améliorée
@@ -128,6 +132,9 @@ make test_bonus  # Compile et lance les tests bonus
 |----------------|-------|-------|
 | Protection segfault | ❌ | ✅ |
 | Détection timeout | ❌ | ✅ |
+| Capture de sortie (ft_put*) | ❌ | ✅ |
+| Tests de protection NULL | ❌ | ✅ |
+| Tests groupés par fonction | ❌ | ✅ |
 | Messages d'erreur détaillés | ⚠️ Basique | ✅ Complets |
 | Résumé des tests | ⚠️ Minimal | ✅ Détaillé |
 | Isolation des tests | ❌ | ✅ |
