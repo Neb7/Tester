@@ -6,7 +6,7 @@
 #    By: benpicar <benpicar@student.42mulhouse.fr>  +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/12/03 13:00:00 by benpicar          #+#    #+#              #
-#    Updated: 2025/12/03 15:14:37 by benpicar         ###   ########.fr        #
+#    Updated: 2026/01/23 16:55:52 by benpicar         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,8 +26,9 @@ TESTER_SRC = tester_gnl.c
 GNL_SRC = $(GNL_DIR)get_next_line.c $(GNL_DIR)get_next_line_utils.c
 
 # Fichiers objets
-TESTER_OBJ = $(TESTER_SRC:.c=.o)
-GNL_OBJ = $(GNL_SRC:.c=.o)
+OBJS_DIR = objects/
+TESTER_OBJ = $(addprefix $(OBJS_DIR), $(TESTER_SRC:.c=.o))
+GNL_OBJ = $(addprefix $(OBJS_DIR), $(notdir $(GNL_SRC:.c=.o)))
 OBJ = $(TESTER_OBJ) $(GNL_OBJ)
 
 # Headers
@@ -46,8 +47,14 @@ $(NAME): $(OBJ)
 	@echo "$(GREEN)✓ Tester GNL compilé avec succès !$(NC)"
 	@echo "$(GREEN)  BUFFER_SIZE=$(BUFFER_SIZE)$(NC)"
 
-%.o: %.c $(HEADER)
+$(OBJS_DIR)%.o: %.c $(HEADER) | $(OBJS_DIR)
 	@$(CC) $(CFLAGS) -D BUFFER_SIZE=$(BUFFER_SIZE) -c $< -o $@
+
+$(OBJS_DIR)%.o: $(GNL_DIR)%.c $(HEADER) | $(OBJS_DIR)
+	@$(CC) $(CFLAGS) -D BUFFER_SIZE=$(BUFFER_SIZE) -c $< -o $@
+
+$(OBJS_DIR):
+	@mkdir -p $(OBJS_DIR)
 
 # Compiler le programme run_all
 $(RUN_ALL): run_all.c
@@ -95,7 +102,7 @@ testall: test1 test10 test42 test1000 test10000
 
 # Nettoyage
 clean:
-	@rm -f $(OBJ)
+	@rm -rf $(OBJS_DIR)
 	@echo "$(RED)✗ Fichiers objets supprimés$(NC)"
 
 fclean: clean

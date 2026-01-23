@@ -6,7 +6,7 @@
 /*   By: benpicar <benpicar@student.42mulhouse.fr>  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/29 03:04:01 by benpicar          #+#    #+#             */
-/*   Updated: 2025/12/03 12:40:03 by benpicar         ###   ########.fr       */
+/*   Updated: 2026/01/23 16:34:43 by benpicar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,311 +36,366 @@ int null_protected = 0;
 // Fonction utilitaire pour exécuter un test dans un fork
 typedef int (*test_func)(void);
 
-int run_test_fork(const char *test_name, test_func func) {
-    total_tests++;
-    printf("%s: ", test_name);
-    fflush(stdout);
-    
-    pid_t pid = fork();
-    if (pid == -1) {
-        printf("%s[ERROR: fork failed]%s\n", RED, NC);
-        failed_tests++;
-        return 0;
-    }
-    
-    if (pid == 0) {
-        // Processus enfant
-        int result = func();
-        exit(result);
-    }
-    
-    // Processus parent
-    int status;
-    int timeout = 2; // 2 secondes timeout
-    int elapsed = 0;
-    
-    while (elapsed < timeout) {
-        int ret = waitpid(pid, &status, WNOHANG);
-        if (ret == pid) {
-            if (WIFEXITED(status)) {
-                int exit_code = WEXITSTATUS(status);
-                if (exit_code == 0) {
-                    printf("%s[OK]%s\n", GREEN, NC);
-                    return 1;
-                } else {
-                    printf("%s[KO]%s\n", RED, NC);
-                    failed_tests++;
-                    return 0;
-                }
-            } else if (WIFSIGNALED(status)) {
-                int sig = WTERMSIG(status);
-                printf("%s[CRASH: Signal %d (%s)]%s\n", RED, sig, 
-                       sig == SIGSEGV ? "SEGFAULT" : 
-                       sig == SIGBUS ? "BUS ERROR" : 
-                       sig == SIGABRT ? "ABORT" : "UNKNOWN", NC);
-                failed_tests++;
-                return 0;
-            }
-        } else if (ret == -1) {
-            printf("%s[ERROR: waitpid failed]%s\n", RED, NC);
-            failed_tests++;
-            return 0;
-        }
-        usleep(100000); // 100ms
-        elapsed++;
-    }
-    
-    // Timeout
-    kill(pid, SIGKILL);
-    waitpid(pid, NULL, 0);
-    printf("%s[TIMEOUT]%s\n", YELLOW, NC);
-    failed_tests++;
-    return 0;
+int	run_test_fork(const char *test_name, test_func func)
+{
+	total_tests++;
+	printf("%s: ", test_name);
+	fflush(stdout);
+	
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		printf("%s[ERROR: fork failed]%s\n", RED, NC);
+		failed_tests++;
+		return (0);
+	}
+	
+	if (pid == 0)
+	{
+		// Processus enfant
+		int result = func();
+		exit(result);
+	}
+	// Processus parent
+	int status;
+	int timeout = 2; // 2 secondes timeout
+	int elapsed = 0;
+	
+	while (elapsed < timeout)
+	{
+		int ret = waitpid(pid, &status, WNOHANG);
+		if (ret == pid)
+		{
+			if (WIFEXITED(status))
+			{
+				int exit_code = WEXITSTATUS(status);
+				if (exit_code == 0)
+				{
+					printf("%s[OK]%s\n", GREEN, NC);
+					return (1);
+				}
+				else
+				{
+					printf("%s[KO]%s\n", RED, NC);
+					failed_tests++;
+					return (0);
+				}
+			}
+			else if (WIFSIGNALED(status))
+			{
+				int sig = WTERMSIG(status);
+				printf("%s[CRASH: Signal %d (%s)]%s\n", RED, sig, 
+					   sig == SIGSEGV ? "SEGFAULT" : 
+					   sig == SIGBUS ? "BUS ERROR" : 
+					   sig == SIGABRT ? "ABORT" : "UNKNOWN", NC);
+				failed_tests++;
+				return (0);
+			}
+		}
+		else if (ret == -1)
+		{
+			printf("%s[ERROR: waitpid failed]%s\n", RED, NC);
+			failed_tests++;
+			return (0);
+		}
+		usleep(100000); // 100ms
+		elapsed++;
+	}
+	
+	// Timeout
+	kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	printf("%s[TIMEOUT]%s\n", YELLOW, NC);
+	failed_tests++;
+	return (0);
 }
 
 // Fonction pour tester un test fork sans newline (pour grouper avec tests NULL)
-int run_test_fork_inline(const char *test_name, test_func func) {
-    total_tests++;
-    printf("%s: ", test_name);
-    fflush(stdout);
-    
-    pid_t pid = fork();
-    if (pid == -1) {
-        printf("%s[ERROR]%s ", RED, NC);
-        failed_tests++;
-        return 0;
-    }
-    
-    if (pid == 0) {
-        int result = func();
-        exit(result);
-    }
-    
-    int status;
-    int timeout = 2;
-    int elapsed = 0;
-    
-    while (elapsed < timeout) {
-        int ret = waitpid(pid, &status, WNOHANG);
-        if (ret == pid) {
-            if (WIFEXITED(status)) {
-                int exit_code = WEXITSTATUS(status);
-                if (exit_code == 0) {
-                    printf("%s[OK]%s ", GREEN, NC);
-                    return 1;
-                } else {
-                    printf("%s[KO]%s ", RED, NC);
-                    failed_tests++;
-                    return 0;
-                }
-            } else if (WIFSIGNALED(status)) {
-                int sig = WTERMSIG(status);
-                printf("%s[CRASH:%d]%s ", RED, sig, NC);
-                failed_tests++;
-                return 0;
-            }
-        } else if (ret == -1) {
-            printf("%s[ERROR]%s ", RED, NC);
-            failed_tests++;
-            return 0;
-        }
-        usleep(100000);
-        elapsed++;
-    }
-    
-    kill(pid, SIGKILL);
-    waitpid(pid, NULL, 0);
-    printf("%s[TIMEOUT]%s ", YELLOW, NC);
-    failed_tests++;
-    return 0;
+int	run_test_fork_inline(const char *test_name, test_func func)
+{
+	total_tests++;
+	printf("%s: ", test_name);
+	fflush(stdout);
+	
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		printf("%s[ERROR]%s ", RED, NC);
+		failed_tests++;
+		return (0);
+	}
+	
+	if (pid == 0)
+	{
+		int result = func();
+		exit(result);
+	}
+	
+	int status;
+	int timeout = 2;
+	int elapsed = 0;
+	
+	while (elapsed < timeout)
+	{
+		int ret = waitpid(pid, &status, WNOHANG);
+		if (ret == pid)
+		{
+			if (WIFEXITED(status))
+			{
+				int exit_code = WEXITSTATUS(status);
+				if (exit_code == 0)
+				{
+					printf("%s[OK]%s ", GREEN, NC);
+					return (1);
+				}
+				else
+				{
+					printf("%s[KO]%s ", RED, NC);
+					failed_tests++;
+					return (0);
+				}
+			}
+			else if (WIFSIGNALED(status))
+			{
+				int sig = WTERMSIG(status);
+				printf("%s[CRASH:%d]%s ", RED, sig, NC);
+				failed_tests++;
+				return (0);
+			}
+		}
+		else if (ret == -1)
+		{
+			printf("%s[ERROR]%s ", RED, NC);
+			failed_tests++;
+			return (0);
+		}
+		usleep(100000);
+		elapsed++;
+	}
+	
+	kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	printf("%s[TIMEOUT]%s ", YELLOW, NC);
+	failed_tests++;
+	return (0);
 }
 
 // Fonction pour tester avec capture de sortie
-int run_test_output(const char *test_name, test_func func, const char *expected_output) {
-    total_tests++;
-    printf("%s: ", test_name);
-    fflush(stdout);
-    
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        printf("%s[ERROR: pipe failed]%s\n", RED, NC);
-        failed_tests++;
-        return 0;
-    }
-    
-    pid_t pid = fork();
-    if (pid == -1) {
-        printf("%s[ERROR: fork failed]%s\n", RED, NC);
-        close(pipefd[0]);
-        close(pipefd[1]);
-        failed_tests++;
-        return 0;
-    }
-    
-    if (pid == 0) {
-        // Processus enfant: redirige stdout vers le pipe
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        
-        int result = func();
-        exit(result);
-    }
-    
-    // Processus parent
-    close(pipefd[1]);
-    
-    char buffer[1024] = {0};
-    int total_read = 0;
-    int timeout = 2;
-    int elapsed = 0;
-    int status;
-    
-    while (elapsed < timeout) {
-        int ret = waitpid(pid, &status, WNOHANG);
-        if (ret == pid) {
-            // Processus terminé, lire la sortie
-            ssize_t n;
-            while ((n = read(pipefd[0], buffer + total_read, sizeof(buffer) - total_read - 1)) > 0) {
-                total_read += n;
-            }
-            close(pipefd[0]);
-            
-            if (WIFEXITED(status)) {
-                int exit_code = WEXITSTATUS(status);
-                if (exit_code != 0) {
-                    printf("%s[KO]%s\n", RED, NC);
-                    failed_tests++;
-                    return 0;
-                }
-                
-                // Comparer la sortie
-                if (strcmp(buffer, expected_output) == 0) {
-                    printf("%s[OK]%s\n", GREEN, NC);
-                    return 1;
-                } else {
-                    printf("%s[KO]%s\n", RED, NC);
-                    printf("  Expected: \"%s\"\n", expected_output);
-                    printf("  Got:      \"%s\"\n", buffer);
-                    failed_tests++;
-                    return 0;
-                }
-            } else if (WIFSIGNALED(status)) {
-                int sig = WTERMSIG(status);
-                printf("%s[CRASH: Signal %d (%s)]%s\n", RED, sig, 
-                       sig == SIGSEGV ? "SEGFAULT" : 
-                       sig == SIGBUS ? "BUS ERROR" : 
-                       sig == SIGABRT ? "ABORT" : "UNKNOWN", NC);
-                close(pipefd[0]);
-                failed_tests++;
-                return 0;
-            }
-        } else if (ret == -1) {
-            printf("%s[ERROR: waitpid failed]%s\n", RED, NC);
-            close(pipefd[0]);
-            failed_tests++;
-            return 0;
-        }
-        usleep(100000);
-        elapsed++;
-    }
-    
-    // Timeout
-    kill(pid, SIGKILL);
-    waitpid(pid, NULL, 0);
-    close(pipefd[0]);
-    printf("%s[TIMEOUT]%s\n", YELLOW, NC);
-    failed_tests++;
-    return 0;
+int	run_test_output(const char *test_name, test_func func, const char *expected_output)
+{
+	total_tests++;
+	printf("%s: ", test_name);
+	fflush(stdout);
+	
+	int pipefd[2];
+	if (pipe(pipefd) == -1)
+	{
+		printf("%s[ERROR: pipe failed]%s\n", RED, NC);
+		failed_tests++;
+		return (0);
+	}
+	
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		printf("%s[ERROR: fork failed]%s\n", RED, NC);
+		close(pipefd[0]);
+		close(pipefd[1]);
+		failed_tests++;
+		return (0);
+	}
+	
+	if (pid == 0)
+	{
+		// Processus enfant: redirige stdout vers le pipe
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+		
+		int result = func();
+		exit(result);
+	}
+	
+	// Processus parent
+	close(pipefd[1]);
+	
+	char buffer[1024] = {0};
+	int total_read = 0;
+	int timeout = 2;
+	int elapsed = 0;
+	int status;
+	
+	while (elapsed < timeout)
+	{
+		int ret = waitpid(pid, &status, WNOHANG);
+		if (ret == pid)
+		{
+			// Processus terminé, lire la sortie
+			ssize_t n;
+			while ((n = read(pipefd[0], buffer + total_read, sizeof(buffer) - total_read - 1)) > 0)
+			{
+				total_read += n;
+			}
+			close(pipefd[0]);
+			
+			if (WIFEXITED(status))
+			{
+				int exit_code = WEXITSTATUS(status);
+				if (exit_code != 0)
+				{
+					printf("%s[KO]%s\n", RED, NC);
+					failed_tests++;
+					return (0);
+				}
+				
+				// Comparer la sortie
+				if (strcmp(buffer, expected_output) == 0)
+				{
+					printf("%s[OK]%s\n", GREEN, NC);
+					return (1);
+				}
+				else
+				{
+					printf("%s[KO]%s\n", RED, NC);
+					printf("  Expected: \"%s\"\n", expected_output);
+					printf("  Got:      \"%s\"\n", buffer);
+					failed_tests++;
+					return (0);
+				}
+			else if (WIFSIGNALED(status)) {
+				int sig = WTERMSIG(status);
+				printf("%s[CRASH: Signal %d (%s)]%s\n", RED, sig, 
+					   sig == SIGSEGV ? "SEGFAULT" : 
+					   sig == SIGBUS ? "BUS ERROR" : 
+					   sig == SIGABRT ? "ABORT" : "UNKNOWN", NC);
+				close(pipefd[0]);
+				failed_tests++;
+				return (0);
+			}
+		}
+		else if (ret == -1)
+		{
+				printf("%s[ERROR: waitpid failed]%s\n", RED, NC);
+				close(pipefd[0]);
+				failed_tests++;
+				return (0);
+		}
+		usleep(100000);
+		elapsed++;
+	}
+	
+	// Timeout
+	kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(pipefd[0]);
+	printf("%s[TIMEOUT]%s\n", YELLOW, NC);
+	failed_tests++;
+	return (0);
 }
 
 // Fonction pour tester avec capture de sortie sans newline (pour grouper avec tests NULL)
-int run_test_output_inline(const char *test_name, test_func func, const char *expected_output) {
-    total_tests++;
-    printf("%s: ", test_name);
-    fflush(stdout);
-    
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        printf("%s[ERROR]%s ", RED, NC);
-        failed_tests++;
-        return 0;
-    }
-    
-    pid_t pid = fork();
-    if (pid == -1) {
-        printf("%s[ERROR]%s ", RED, NC);
-        close(pipefd[0]);
-        close(pipefd[1]);
-        failed_tests++;
-        return 0;
-    }
-    
-    if (pid == 0) {
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        
-        int result = func();
-        exit(result);
-    }
-    
-    close(pipefd[1]);
-    
-    char buffer[1024] = {0};
-    int total_read = 0;
-    int timeout = 2;
-    int elapsed = 0;
-    int status;
-    
-    while (elapsed < timeout) {
-        int ret = waitpid(pid, &status, WNOHANG);
-        if (ret == pid) {
-            ssize_t n;
-            while ((n = read(pipefd[0], buffer + total_read, sizeof(buffer) - total_read - 1)) > 0) {
-                total_read += n;
-            }
-            close(pipefd[0]);
-            
-            if (WIFEXITED(status)) {
-                int exit_code = WEXITSTATUS(status);
-                if (exit_code != 0) {
-                    printf("%s[KO]%s ", RED, NC);
-                    failed_tests++;
-                    return 0;
-                }
-                
-                if (strcmp(buffer, expected_output) == 0) {
-                    printf("%s[OK]%s ", GREEN, NC);
-                    return 1;
-                } else {
-                    printf("%s[KO]%s ", RED, NC);
-                    failed_tests++;
-                    return 0;
-                }
-            } else if (WIFSIGNALED(status)) {
-                int sig = WTERMSIG(status);
-                printf("%s[CRASH:%d]%s ", RED, sig, NC);
-                close(pipefd[0]);
-                failed_tests++;
-                return 0;
-            }
-        } else if (ret == -1) {
-            printf("%s[ERROR]%s ", RED, NC);
-            close(pipefd[0]);
-            failed_tests++;
-            return 0;
-        }
-        usleep(100000);
-        elapsed++;
-    }
-    
-    kill(pid, SIGKILL);
-    waitpid(pid, NULL, 0);
-    close(pipefd[0]);
-    printf("%s[TIMEOUT]%s ", YELLOW, NC);
-    failed_tests++;
-    return 0;
+int	run_test_output_inline(const char *test_name, test_func func, const char *expected_output)
+{
+	total_tests++;
+	printf("%s: ", test_name);
+	fflush(stdout);
+	
+	int pipefd[2];
+	if (pipe(pipefd) == -1)
+	{
+		printf("%s[ERROR]%s ", RED, NC);
+		failed_tests++;
+		return (0);
+	}
+	
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		printf("%s[ERROR]%s ", RED, NC);
+		close(pipefd[0]);
+		close(pipefd[1]);
+		failed_tests++;
+		return (0);
+	}
+	
+	if (pid == 0)
+	{
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+		
+		int result = func();
+		exit(result);
+	}
+	
+	close(pipefd[1]);
+	
+	char buffer[1024] = {0};
+	int total_read = 0;
+	int timeout = 2;
+	int elapsed = 0;
+	int status;
+	
+	while (elapsed < timeout)
+	{
+		int ret = waitpid(pid, &status, WNOHANG);
+		if (ret == pid)
+		{
+			ssize_t n;
+			while ((n = read(pipefd[0], buffer + total_read, sizeof(buffer) - total_read - 1)) > 0)
+			{
+				total_read += n;
+			}
+			close(pipefd[0]);
+			
+			if (WIFEXITED(status))
+			{
+				int exit_code = WEXITSTATUS(status);
+				if (exit_code != 0)
+				{
+					printf("%s[KO]%s ", RED, NC);
+					failed_tests++;
+					return (0);
+				}
+				
+				if (strcmp(buffer, expected_output) == 0)
+				{
+					printf("%s[OK]%s ", GREEN, NC);
+					return (1);
+				}
+				else
+				{
+					printf("%s[KO]%s ", RED, NC);
+					failed_tests++;
+					return (0);
+				}
+			}
+			else if (WIFSIGNALED(status))
+			{
+				int sig = WTERMSIG(status);
+				printf("%s[CRASH:%d]%s ", RED, sig, NC);
+				close(pipefd[0]);
+				failed_tests++;
+				return (0);
+			}
+		}
+		else if (ret == -1)
+		{
+			printf("%s[ERROR]%s ", RED, NC);
+			close(pipefd[0]);
+			failed_tests++;
+			return (0);
+		}
+		usleep(100000);
+		elapsed++;
+	}
+	
+	kill(pid, SIGKILL);
+	waitpid(pid, NULL, 0);
+	close(pipefd[0]);
+	printf("%s[TIMEOUT]%s ", YELLOW, NC);
+	failed_tests++;
+	return (0);
 }
 
 // Structure pour stocker les tests multiples
@@ -357,25 +412,29 @@ typedef struct {
 } test_result_t;
 
 // Fonction pour tester plusieurs tests fork sur une même ligne (sans capture de sortie)
-void run_multiple_fork_tests(const char *func_name, test_func *tests, int count) {
-    printf("%s: ", func_name);
-    fflush(stdout);
-    
-    for (int i = 0; i < count; i++) {
-        total_tests++;
-        
-        fflush(stdout);  // Flush avant CHAQUE fork
-        pid_t pid = fork();
-        if (pid == -1) {
-            printf("%s[ERROR]%s ", RED, NC);
-            failed_tests++;
-            continue;
-        }
-        
-        if (pid == 0) {
-            int result = tests[i]();
-            exit(result);
-        }
+void	run_multiple_fork_tests(const char *func_name, test_func *tests, int count)
+{
+	printf("%s: ", func_name);
+	fflush(stdout);
+	
+	for (int i = 0; i < count; i++)
+	{
+		total_tests++;
+		
+		fflush(stdout);  // Flush avant CHAQUE fork
+		pid_t pid = fork();
+		if (pid == -1)
+		{
+			printf("%s[ERROR]%s ", RED, NC);
+			failed_tests++;
+			continue;
+		}
+		
+		if (pid == 0)
+		{
+			int result = tests[i]();
+			exit(result);
+		}
         
         int status;
         int timeout = 2;
@@ -407,39 +466,43 @@ void run_multiple_fork_tests(const char *func_name, test_func *tests, int count)
                 failed_tests++;
                 goto next_test;
             }
-            usleep(100000);
-            elapsed++;
-        }
-        
-        kill(pid, SIGKILL);
-        waitpid(pid, NULL, 0);
-        printf("%s[TIMEOUT]%s ", YELLOW, NC);
-        failed_tests++;
-        
+			usleep(100000);
+			elapsed++;
+		}
+		
+		kill(pid, SIGKILL);
+		waitpid(pid, NULL, 0);
+		printf("%s[TIMEOUT]%s ", YELLOW, NC);
+		failed_tests++;
+		
 next_test:
-        continue;
-    }
-    
-    printf("\n");
+		continue;
+	}
+	
+	printf("\n");
 }
 
 // Fonction pour tester plusieurs tests fork NULL protection sur une même ligne
-void run_multiple_null_tests_inline(test_func *tests, int count) {
-    for (int i = 0; i < count; i++) {
-        total_tests++;
-        null_tests++;
-        
-        fflush(stdout);  // Flush avant CHAQUE fork
-        pid_t pid = fork();
-        if (pid == -1) {
-            printf("%s[ERROR]%s ", RED, NC);
-            continue;
-        }
-        
-        if (pid == 0) {
-            int result = tests[i]();
-            exit(result);
-        }
+void	run_multiple_null_tests_inline(test_func *tests, int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		total_tests++;
+		null_tests++;
+		
+		fflush(stdout);  // Flush avant CHAQUE fork
+		pid_t pid = fork();
+		if (pid == -1)
+		{
+			printf("%s[ERROR]%s ", RED, NC);
+			continue;
+		}
+		
+		if (pid == 0)
+		{
+			int result = tests[i]();
+			exit(result);
+		}
         
         int status;
         int timeout = 2;
@@ -468,36 +531,39 @@ void run_multiple_null_tests_inline(test_func *tests, int count) {
                 printf("%s[ERROR]%s ", RED, NC);
                 goto next_null_test;
             }
-            usleep(100000);
-            elapsed++;
-        }
-        
-        kill(pid, SIGKILL);
-        waitpid(pid, NULL, 0);
-        printf("%s[TIMEOUT]%s ", YELLOW, NC);
-        
+			usleep(100000);
+			elapsed++;
+		}
+		
+		kill(pid, SIGKILL);
+		waitpid(pid, NULL, 0);
+		printf("%s[TIMEOUT]%s ", YELLOW, NC);
+		
 next_null_test:
-        continue;
-    }
+		continue;
+	}
 }
 
 // Fonction pour tester plusieurs cas d'une même fonction sur une ligne
-void run_multiple_output_tests_internal(const char *func_name, test_case_t *tests, int count, int is_null_test) {
-    printf("%s: ", func_name);
-    fflush(stdout);
-    
-    test_result_t *results = calloc(count, sizeof(test_result_t));
-    int has_error = 0;
-    
-    for (int i = 0; i < count; i++) {
-        total_tests++;
-        
-        int pipefd[2];
-        if (pipe(pipefd) == -1) {
-            printf("%s[ERROR]%s ", RED, NC);
-            failed_tests++;
-            has_error = 1;
-            results[i].passed = 0;
+void	run_multiple_output_tests_internal(const char *func_name, test_case_t *tests, int count, int is_null_test)
+{
+	printf("%s: ", func_name);
+	fflush(stdout);
+	
+	test_result_t	*results = calloc(count, sizeof(test_result_t));
+	int has_error = 0;
+	
+	for (int i = 0; i < count; i++)
+	{
+		total_tests++;
+		
+		int pipefd[2];
+		if (pipe(pipefd) == -1)
+		{
+			printf("%s[ERROR]%s ", RED, NC);
+			failed_tests++;
+			has_error = 1;
+			results[i].passed = 0;
             continue;
         }
         
@@ -523,33 +589,43 @@ void run_multiple_output_tests_internal(const char *func_name, test_case_t *test
             exit(result);
         }
         
-        close(pipefd[1]);
-        
-        int total_read = 0;
-        int timeout = 2;
-        int elapsed = 0;
-        int status;
-        
-        while (elapsed < timeout) {
-            int ret = waitpid(pid, &status, WNOHANG);
-            if (ret == pid) {
-                ssize_t n;
-                while ((n = read(pipefd[0], results[i].buffer + total_read, 
-                        sizeof(results[i].buffer) - total_read - 1)) > 0) {
-                    total_read += n;
-                }
-                close(pipefd[0]);
-                
-                if (WIFEXITED(status)) {
-                    int exit_code = WEXITSTATUS(status);
-                    if (exit_code == 0 && strcmp(results[i].buffer, tests[i].expected_output) == 0) {
-                        if (is_null_test) {
-                            printf("%s[%s🛡%s]%s ", GREEN, GRAY, GREEN, NC);
-                        } else {
-                            printf("%s[OK]%s ", GREEN, NC);
-                        }
-                        results[i].passed = 1;
-                    } else {
+		close(pipefd[1]);
+		
+		int total_read = 0;
+		int timeout = 2;
+		int elapsed = 0;
+		int status;
+		
+		while (elapsed < timeout)
+		{
+			int ret = waitpid(pid, &status, WNOHANG);
+			if (ret == pid)
+			{
+				ssize_t n;
+				while ((n = read(pipefd[0], results[i].buffer + total_read, 
+						sizeof(results[i].buffer) - total_read - 1)) > 0)
+				{
+					total_read += n;
+				}
+				close(pipefd[0]);
+				
+				if (WIFEXITED(status))
+				{
+					int exit_code = WEXITSTATUS(status);
+					if (exit_code == 0 && strcmp(results[i].buffer, tests[i].expected_output) == 0)
+					{
+						if (is_null_test)
+						{
+							printf("%s[%s🛡%s]%s ", GREEN, GRAY, GREEN, NC);
+						}
+						else
+						{
+							printf("%s[OK]%s ", GREEN, NC);
+						}
+						results[i].passed = 1;
+					}
+					else
+					{
                         if (is_null_test) {
                             printf("%s[⚠]%s ", RED, NC);
                         } else {
@@ -720,306 +796,373 @@ void run_multiple_output_null_tests_inline(test_case_t *tests, int count) {
     free(results);
 }
 
-int test_isalpha() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_isalpha(c) ? 1 : 0;
-        int std = isalpha(c) ? 1 : 0;
-        if (ft != std) {
-            printf("  Error: c=%d ft_isalpha=%d isalpha=%d\n", c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_isalpha()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_isalpha(c) ? 1 : 0;
+		int std = isalpha(c) ? 1 : 0;
+		if (ft != std)
+		{
+			printf("  Error: c=%d ft_isalpha=%d isalpha=%d\n", c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_isdigit() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_isdigit(c) ? 1 : 0;
-        int std = isdigit(c) ? 1 : 0;
-        if (ft != std) {
-            printf("  Error: c=%d ft_isdigit=%d isdigit=%d\n", c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_isdigit()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_isdigit(c) ? 1 : 0;
+		int std = isdigit(c) ? 1 : 0;
+		if (ft != std)
+		{
+			printf("  Error: c=%d ft_isdigit=%d isdigit=%d\n", c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_isalnum() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_isalnum(c) ? 1 : 0;
-        int std = isalnum(c) ? 1 : 0;
-        if (ft != std) {
-            printf("  Error: c=%d ft_isalnum=%d isalnum=%d\n", c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_isalnum()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_isalnum(c) ? 1 : 0;
+		int std = isalnum(c) ? 1 : 0;
+		if (ft != std)
+		{
+			printf("  Error: c=%d ft_isalnum=%d isalnum=%d\n", c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_isascii() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_isascii(c) ? 1 : 0;
-        int std = isascii(c) ? 1 : 0;
-        if (ft != std) {
-            printf("  Error: c=%d ft_isascii=%d isascii=%d\n", c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_isascii()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_isascii(c) ? 1 : 0;
+		int std = isascii(c) ? 1 : 0;
+		if (ft != std)
+		{
+			printf("  Error: c=%d ft_isascii=%d isascii=%d\n", c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_isprint() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_isprint(c) ? 1 : 0;
-        int std = isprint(c) ? 1 : 0;
-        if (ft != std) {
-            printf("  Error: c=%d ft_isprint=%d isprint=%d\n", c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_isprint()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_isprint(c) ? 1 : 0;
+		int std = isprint(c) ? 1 : 0;
+		if (ft != std)
+		{
+			printf("  Error: c=%d ft_isprint=%d isprint=%d\n", c, ft, std);
+		return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strlen() {
-    const char *tests[] = {"", "a", "abc", "Hello, world!", NULL};
-    for (int i = 0; tests[i]; i++) {
-        size_t ft = ft_strlen(tests[i]);
-        size_t std = strlen(tests[i]);
-        if (ft != std) {
-            printf("  Error: s=\"%s\" ft_strlen=%zu strlen=%zu\n", tests[i], ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_strlen()
+{
+	const char	*tests[] = {"", "a", "abc", "Hello, world!", NULL};
+	for (int i = 0; tests[i]; i++)
+	{
+		size_t ft = ft_strlen(tests[i]);
+		size_t std = strlen(tests[i]);
+		if (ft != std)
+		{
+			printf("  Error: s=\"%s\" ft_strlen=%zu strlen=%zu\n", tests[i], ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strlcpy() {
-    const char *srcs[] = {"Hello", "", "abc", NULL};
-    for (int i = 0; srcs[i]; i++) {
-        char d1[20] = {0};
-        size_t r1 = ft_strlcpy(d1, srcs[i], 20);
-        size_t r2 = strlen(srcs[i]);
-        if (r1 != r2 || strcmp(d1, srcs[i]) != 0) {
-            printf("  Error: src=\"%s\" ft_strlcpy=%zu expected=%zu d1=\"%s\"\n", srcs[i], r1, r2, d1);
-            return 1;
-        }
-    }
-    return 0;
+int	test_strlcpy()
+{
+	const char	*srcs[] = {"Hello", "", "abc", NULL};
+	for (int i = 0; srcs[i]; i++)
+	{
+		char d1[20] = {0};
+		size_t r1 = ft_strlcpy(d1, srcs[i], 20);
+		size_t r2 = strlen(srcs[i]);
+		if (r1 != r2 || strcmp(d1, srcs[i]) != 0)
+		{
+			printf("  Error: src=\"%s\" ft_strlcpy=%zu expected=%zu d1=\"%s\"\n", srcs[i], r1, r2, d1);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strlcat() {
-    char d1[20] = "Hi ";
-    const char *src = "there";
-    size_t r1 = ft_strlcat(d1, src, 20);
-    if (strcmp(d1, "Hi there") != 0 || r1 != strlen("Hi ") + strlen(src)) {
-        printf("  Error: dest=\"%s\" r1=%zu expected=%zu\n", d1, r1, strlen("Hi ") + strlen(src));
-        return 1;
-    }
-    return 0;
+int	test_strlcat()
+{
+	char d1[20] = "Hi ";
+	const char	*src = "there";
+	size_t r1 = ft_strlcat(d1, src, 20);
+	if (strcmp(d1, "Hi there") != 0 || r1 != strlen("Hi ") + strlen(src))
+	{
+		printf("  Error: dest=\"%s\" r1=%zu expected=%zu\n", d1, r1, strlen("Hi ") + strlen(src));
+		return (1);
+	}
+	return (0);
 }
 
-int test_strchr() {
-    const char *s = "Hello";
-    for (int c = 0; c < 128; c++) {
-        char *ft = ft_strchr(s, c);
-        char *std = strchr(s, c);
-        if ((ft == NULL) != (std == NULL) || (ft && std && ft - s != std - s)) {
-            printf("  Error: c=%d(%c) ft_strchr=%p strchr=%p\n", c, c, (void*)ft, (void*)std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_strchr()
+{
+	const char	*s = "Hello";
+	for (int c = 0; c < 128; c++)
+	{
+		char	*ft = ft_strchr(s, c);
+		char	*std = strchr(s, c);
+		if ((ft == NULL) != (std == NULL) || (ft && std && ft - s != std - s))
+		{
+			printf("  Error: c=%d(%c) ft_strchr=%p strchr=%p\n", c, c, (void*)ft, (void*)std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strrchr() {
-    const char *s = "Hello";
-    for (int c = 0; c < 128; c++) {
-        char *ft = ft_strrchr(s, c);
-        char *std = strrchr(s, c);
-        if ((ft == NULL) != (std == NULL) || (ft && std && ft - s != std - s)) {
-            printf("  Error: c=%d(%c) ft_strrchr=%p strrchr=%p\n", c, c, (void*)ft, (void*)std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_strrchr()
+{
+	const char	*s = "Hello";
+	for (int c = 0; c < 128; c++)
+	{
+		char	*ft = ft_strrchr(s, c);
+		char	*std = strrchr(s, c);
+		if ((ft == NULL) != (std == NULL) || (ft && std && ft - s != std - s))
+		{
+			printf("  Error: c=%d(%c) ft_strrchr=%p strrchr=%p\n", c, c, (void*)ft, (void*)std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strncmp() {
-    const char *a[] = {"abc", "abc", "abc", "abc", "", "abc", NULL};
-    const char *b[] = {"abc", "abd", "", "abcde", "", "", NULL};
-    size_t n[] = {3, 2, 1, 5, 0, 1};
-    for (int i = 0; a[i]; i++) {
-        int ft = ft_strncmp(a[i], b[i], n[i]);
-        int std = strncmp(a[i], b[i], n[i]);
-        if ((ft == 0) != (std == 0)) {
-            printf("  Error: \"%s\" vs \"%s\" n=%zu ft_strncmp=%d strncmp=%d\n", a[i], b[i], n[i], ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_strncmp()
+{
+	const char	*a[] = {"abc", "abc", "abc", "abc", "", "abc", NULL};
+	const char	*b[] = {"abc", "abd", "", "abcde", "", "", NULL};
+	size_t n[] = {3, 2, 1, 5, 0, 1};
+	for (int i = 0; a[i]; i++)
+	{
+		int ft = ft_strncmp(a[i], b[i], n[i]);
+		int std = strncmp(a[i], b[i], n[i]);
+		if ((ft == 0) != (std == 0))
+		{
+			printf("  Error: \"%s\" vs \"%s\" n=%zu ft_strncmp=%d strncmp=%d\n", a[i], b[i], n[i], ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strnstr() {
-    const char *big = "Hello world";
-    const char *little = "world";
-    char *ft = ft_strnstr(big, little, 11);
-    char *std = strstr(big, little);
-    if ((ft == NULL && std != NULL) || (ft && std && ft - big != std - big)) {
-        printf("  Error: ft_strnstr=%p strstr=%p\n", (void*)ft, (void*)std);
-        return 1;
-    }
-    return 0;
+int	test_strnstr()
+{
+	const char	*big = "Hello world";
+	const char	*little = "world";
+	char	*ft = ft_strnstr(big, little, 11);
+	char	*std = strstr(big, little);
+	if ((ft == NULL && std != NULL) || (ft && std && ft - big != std - big))
+	{
+		printf("  Error: ft_strnstr=%p strstr=%p\n", (void*)ft, (void*)std);
+		return (1);
+	}
+	return (0);
 }
 
-int test_memset() {
-    char a[10], b[10];
-    memset(b, 'A', 5);
-    ft_memset(a, 'A', 5);
-    for (int i = 0; i < 5; i++) {
-        if (a[i] != b[i]) {
-            printf("  Error: i=%d a=%d b=%d\n", i, a[i], b[i]);
-            return 1;
-        }
-    }
-    return 0;
+int	test_memset()
+{
+	char a[10], b[10];
+	memset(b, 'A', 5);
+	ft_memset(a, 'A', 5);
+	for (int i = 0; i < 5; i++)
+	{
+		if (a[i] != b[i])
+		{
+			printf("  Error: i=%d a=%d b=%d\n", i, a[i], b[i]);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_bzero() {
-    char a[10];
-    ft_bzero(a, 10);
-    for (int i = 0; i < 10; i++) {
-        if (a[i] != 0) {
-            printf("  Error: i=%d a=%d (expected 0)\n", i, a[i]);
-            return 1;
-        }
-    }
-    return 0;
+int	test_bzero()
+{
+	char a[10];
+	ft_bzero(a, 10);
+	for (int i = 0; i < 10; i++)
+	{
+		if (a[i] != 0)
+		{
+			printf("  Error: i=%d a=%d (expected 0)\n", i, a[i]);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_memcpy() {
-    char a[10], b[10];
-    ft_memcpy(a, "12345", 6);
-    memcpy(b, "12345", 6);
-    if (memcmp(a, b, 6) != 0) {
-        printf("  Error: a=\"%s\" b=\"%s\"\n", a, b);
-        return 1;
-    }
-    return 0;
+int	test_memcpy()
+{
+	char a[10], b[10];
+	ft_memcpy(a, "12345", 6);
+	memcpy(b, "12345", 6);
+	if (memcmp(a, b, 6) != 0)
+	{
+		printf("  Error: a=\"%s\" b=\"%s\"\n", a, b);
+		return (1);
+	}
+	return (0);
 }
 
-int test_memmove() {
-    char a[10] = "abcdefg";
-    char b[10] = "abcdefg";
-    ft_memmove(a+2, a, 5);
-    memmove(b+2, b, 5);
-    if (memcmp(a, b, 10) != 0) {
-        printf("  Error: a=\"%s\" b=\"%s\"\n", a, b);
-        return 1;
-    }
-    return 0;
+int	test_memmove()
+{
+	char a[10] = "abcdefg";
+	char b[10] = "abcdefg";
+	ft_memmove(a+2, a, 5);
+	memmove(b+2, b, 5);
+	if (memcmp(a, b, 10) != 0)
+	{
+		printf("  Error: a=\"%s\" b=\"%s\"\n", a, b);
+		return (1);
+	}
+	return (0);
 }
 
-int test_memchr() {
-    char s[] = "abcde";
-    for (int c = 0; c < 128; c++) {
-        void *ft = ft_memchr(s, c, 5);
-        void *std = memchr(s, c, 5);
-        if (ft != std) {
-            printf("  Error: c=%d(%c) ft_memchr=%p memchr=%p\n", c, c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_memchr()
+{
+	char s[] = "abcde";
+	for (int c = 0; c < 128; c++)
+	{
+		void	*ft = ft_memchr(s, c, 5);
+		void	*std = memchr(s, c, 5);
+		if (ft != std)
+		{
+			printf("  Error: c=%d(%c) ft_memchr=%p memchr=%p\n", c, c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_memcmp() {
-    const char *a[] = {"abc", "abc", "abc", "", NULL};
-    const char *b[] = {"abc", "abd", "", "", NULL};
-    size_t n[] = {3, 3, 1, 0};
-    for (int i = 0; a[i]; i++) {
-        int ft = ft_memcmp(a[i], b[i], n[i]);
-        int std = memcmp(a[i], b[i], n[i]);
-        if ((ft == 0) != (std == 0)) {
-            printf("  Error: \"%s\" vs \"%s\" n=%zu ft_memcmp=%d memcmp=%d\n", a[i], b[i], n[i], ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_memcmp()
+{
+	const char	*a[] = {"abc", "abc", "abc", "", NULL};
+	const char	*b[] = {"abc", "abd", "", "", NULL};
+	size_t n[] = {3, 3, 1, 0};
+	for (int i = 0; a[i]; i++)
+	{
+		int ft = ft_memcmp(a[i], b[i], n[i]);
+		int std = memcmp(a[i], b[i], n[i]);
+		if ((ft == 0) != (std == 0))
+		{
+			printf("  Error: \"%s\" vs \"%s\" n=%zu ft_memcmp=%d memcmp=%d\n", a[i], b[i], n[i], ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_atoi() {
-    const char *tests[] = {"42", "-42", "0", "  123", "abc", "2147483647", "-2147483648", NULL};
-    for (int i = 0; tests[i]; i++) {
-        int ft = ft_atoi(tests[i]);
-        int std = atoi(tests[i]);
-        if (ft != std) {
-            printf("  Error: s=\"%s\" ft_atoi=%d atoi=%d\n", tests[i], ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_atoi()
+{
+	const char	*tests[] = {"42", "-42", "0", "  123", "abc", "2147483647", "-2147483648", NULL};
+	for (int i = 0; tests[i]; i++)
+	{
+		int ft = ft_atoi(tests[i]);
+		int std = atoi(tests[i]);
+		if (ft != std)
+		{
+			printf("  Error: s=\"%s\" ft_atoi=%d atoi=%d\n", tests[i], ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_toupper() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_toupper(c);
-        int std = toupper(c);
-        if (ft != std) {
-            printf("  Error: c=%d(%c) ft_toupper=%d toupper=%d\n", c, c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_toupper()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_toupper(c);
+		int std = toupper(c);
+		if (ft != std)
+		{
+			printf("  Error: c=%d(%c) ft_toupper=%d toupper=%d\n", c, c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_tolower() {
-    for (int c = 0; c <= 255; c++) {
-        int ft = ft_tolower(c);
-        int std = tolower(c);
-        if (ft != std) {
-            printf("  Error: c=%d(%c) ft_tolower=%d tolower=%d\n", c, c, ft, std);
-            return 1;
-        }
-    }
-    return 0;
+int	test_tolower()
+{
+	for (int c = 0; c <= 255; c++)
+	{
+		int ft = ft_tolower(c);
+		int std = tolower(c);
+		if (ft != std)
+		{
+			printf("  Error: c=%d(%c) ft_tolower=%d tolower=%d\n", c, c, ft, std);
+			return (1);
+		}
+	}
+	return (0);
 }
 
-int test_strdup() {
-    const char *tests[] = {"hello", "", "abc", NULL};
-    for (int i = 0; tests[i]; i++) {
-        char *a = ft_strdup(tests[i]);
-        char *b = strdup(tests[i]);
-        if (strcmp(a, b) != 0) {
-            printf("  Error: s=\"%s\" ft_strdup=\"%s\" strdup=\"%s\"\n", tests[i], a, b);
-            free(a); free(b);
-            return 1;
-        }
-        free(a); free(b);
-    }
-    return 0;
+int	test_strdup()
+{
+	const char	*tests[] = {"hello", "", "abc", NULL};
+	for (int i = 0; tests[i]; i++)
+	{
+		char	*a = ft_strdup(tests[i]);
+		char	*b = strdup(tests[i]);
+		if (strcmp(a, b) != 0)
+		{
+			printf("  Error: s=\"%s\" ft_strdup=\"%s\" strdup=\"%s\"\n", tests[i], a, b);
+			free(a); free(b);
+			return (1);
+		}
+		free(a); free(b);
+	}
+	return (0);
 }
 
-int test_calloc() {
-    for (size_t n = 1; n <= 10; n++) {
-        char *a = ft_calloc(n, 1);
-        char *b = calloc(n, 1);
-        if (memcmp(a, b, n) != 0) {
-            printf("  Error: n=%zu - memory not zeroed\n", n);
-            free(a); free(b);
-            return 1;
-        }
-        free(a); free(b);
-    }
-    return 0;
+int	test_calloc()
+{
+	for (size_t n = 1; n <= 10; n++)
+	{
+		char	*a = ft_calloc(n, 1);
+		char	*b = calloc(n, 1);
+		if (memcmp(a, b, n) != 0)
+		{
+			printf("  Error: n=%zu - memory not zeroed\n", n);
+			free(a); free(b);
+			return (1);
+		}
+		free(a); free(b);
+	}
+	return (0);
 }
 
 // Part 2
 
-int test_itoa() {
-    int tests[] = {42, -42, 0, 2147483647, -2147483648};
-    char buf[32];
-    for (int i = 0; i < 5; i++) {
-        char *ft = ft_itoa(tests[i]);
+int	test_itoa()
+{
+	int tests[] = {42, -42, 0, 2147483647, -2147483648};
+	char buf[32];
+	for (int i = 0; i < 5; i++)
+	{
+		char	*ft = ft_itoa(tests[i]);
         snprintf(buf, sizeof(buf), "%d", tests[i]);
         if (strcmp(ft, buf) != 0) {
             printf("  Error: n=%d ft_itoa=\"%s\" expected=\"%s\"\n", tests[i], ft, buf);

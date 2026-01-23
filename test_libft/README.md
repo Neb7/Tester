@@ -1,46 +1,84 @@
 # Libft Tester
 
-Testeur complet pour le projet libft de 42 avec protection contre les crashes et tests de protection NULL.
+Testeur complet pour le projet **libft** de 42 avec protection contre les crashes et tests de protection NULL.
+
+## Description
+
+Ce tester vérifie automatiquement toutes les fonctions de la libft (partie obligatoire et bonus) :
+- ✅ Fonctions de manipulation de caractères (`ft_isalpha`, `ft_isdigit`, etc.)
+- ✅ Fonctions de manipulation de chaînes (`ft_strlen`, `ft_strdup`, `ft_split`, etc.)
+- ✅ Fonctions de manipulation de mémoire (`ft_memset`, `ft_memcpy`, etc.)
+- ✅ Fonctions de conversion (`ft_atoi`, `ft_itoa`)
+- ✅ Fonctions de sortie (`ft_putchar_fd`, `ft_putstr_fd`, etc.)
+- ✅ Fonctions bonus (listes chaînées)
 
 ## Fonctionnalités
 
-✅ **Protection par Fork**: Chaque test s'exécute dans un processus séparé
+🔒 **Protection par Fork** : Chaque test s'exécute dans un processus séparé
 - Protection contre les segfaults
 - Protection contre les bus errors  
-- Protection contre les infinite loops (timeout 2s)
+- Protection contre les boucles infinies (timeout 2s)
 
-✅ **Capture de sortie**: Vérifie la sortie des fonctions ft_put* via pipes
+📤 **Capture de sortie** : Vérifie la sortie des fonctions ft_put* via pipes
 
-✅ **Tests de protection NULL**: Vérifie que vos fonctions gèrent correctement les arguments NULL
+🛡️ **Tests de protection NULL** : Vérifie que vos fonctions gèrent correctement les arguments NULL
 - Affichage avec `[🛡]` en vert pour les protections implémentées
 - Affichage avec `[⚠]` en jaune pour les protections manquantes
 - Ces tests sont **informatifs uniquement** et n'affectent pas le résultat global
 
-✅ **Messages d'erreur détaillés**: Indique exactement ce qui n'a pas fonctionné dans chaque test
+✅ **Messages d'erreur détaillés** : Indique exactement ce qui n'a pas fonctionné dans chaque test
 
-✅ **Tests groupés**: Tous les tests d'une même fonction sur une seule ligne
+📊 **Tests groupés** : Tous les tests d'une même fonction sur une seule ligne
 
-✅ **Résumé complet**: Affiche le nombre total de tests, réussis, échoués et protections NULL
+📈 **Résumé complet** : Affiche le nombre total de tests, réussis, échoués et protections NULL
+
+## Structure
+
+```
+test_libft/
+├── test_libft.c        # Tests des fonctions obligatoires
+├── test_libft_bonus.c  # Tests des fonctions bonus
+├── Makefile            # Makefile pour compiler et exécuter
+├── run_tests.sh        # Script pour exécuter facilement
+└── README.md           # Ce fichier
+```
 
 ## Utilisation
 
+### Prérequis
+
+Votre libft doit être dans le dossier parent de ce tester.
+
 ### Compilation
 
-Pour tester votre libft, copiez ce dossier dans votre projet libft et compilez :
-
 ```bash
-cd libft/test_libft
 make
 ```
 
 ### Exécution
 
 ```bash
-# Tests de base
+# Tests de base (fonctions obligatoires)
 ./test_libft
 
-# Tests bonus
+# Tests bonus (listes chaînées)
 ./test_libft_bonus
+
+# Ou utiliser le script
+./run_tests.sh
+```
+
+### Nettoyage
+
+```bash
+# Nettoyer les fichiers objets
+make clean
+
+# Nettoyer tout
+make fclean
+
+# Recompiler
+make re
 ```
 
 ## Format de sortie
